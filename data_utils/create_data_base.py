@@ -14,13 +14,34 @@ import datetime
 
 if __name__ == "__main__":
     
-    path = r'/Users/danieldomek/downloads'
-    stuff = os.listdir(r'/Users/danieldomek/downloads')
+    path = r'C:\Users\Gamma Skew\Downloads'
+    stuff = os.listdir(r'C:\Users\Gamma Skew\Downloads')
     
-    symbol = 'QQQ'
-    f = open(path+'/'+symbol+'.txt')
-    txt = f.read()
-    f.close()
+    file = pd.read_csv(r'C:\Users\Gamma Skew\Desktop\mkt_cap_sorted-2022-08-01.csv')
+    symbols = file['Symbol'].values.tolist()
+    for x in range(0,len(symbols)):
+        symbols[x] = symbols[x].replace('-','.')
+        
+    
+    
+    symbol = symbols[0]
+    resp = r.get('http://api.kibot.com?action=login&user=dannydomek@dls.net&password=j3jdj1j1k')
+    
+    req = "http://api.kibot.com/?action=history&symbol="+symbols[0]+"&interval=1&startdate=01/01/1999&enddate=08/01/2022&regularsession=0"
+    txt = ""
+    prev_year = ""
+    with r.get(req, stream=True, timeout=180) as resp:
+        resp.raise_for_status()
+        for chunk in resp.iter_content(24576):
+            txt+=chunk.decode('utf-8')
+            piece = chunk.decode('utf-8')[:100]
+            piece = piece.split('/')
+            currYear = piece[2][:4]
+            if(currYear!=prev_year):
+                print(currYear)
+                prev_year = currYear
+
+            
     
     print('loaded')
     txt = txt.split('\n')
@@ -111,7 +132,7 @@ if __name__ == "__main__":
         
     txt = ''
     
-    save_path = r'/Users/research_cluster/stocks_all_history'
+    save_path = r'C:\data\stocks_all_history'
     
     keys = list(partitioned.keys())
     for x in tqdm(range(0,len(keys)),desc='saving files'):
